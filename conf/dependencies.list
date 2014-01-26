@@ -1,0 +1,3 @@
+gcc	gmp,mpfr,mpc
+wget	gnutls
+

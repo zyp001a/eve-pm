@@ -1,0 +1,7 @@
+#!/bin/sh
+if ! [ -n "$EVE_HOME" ] ; then echo 'EVE_HOME is not set' exit; fi
+pm=$EVE_HOME/pm
+$pm i tar
+$pm i wget
+$pm i  
+$pm i emacs
