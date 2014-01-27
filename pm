@@ -4,7 +4,7 @@
 =cut
 use strict;
 no strict "refs";
-use LWP::UserAgent;
+use HTTP::Tiny;
 use Net::FTP;
 #use File::Basename;
 use File::Path qw(remove_tree);
@@ -26,9 +26,12 @@ if(!$pack){
 if(!$ENV{"EVE_HOME"}){
 		die "You must set EVE_HOME first\n";
 }
-my $ua = LWP::UserAgent->new;
+
 my $eve_home = $ENV{"EVE_HOME"};
 my $repo = "$eve_home/repo";
+if($ENV{"EVE_REPO"}){
+	$repo=$ENV{"EVE_REPO"};
+}
 
 my %stable_package_hash;
 my %dev_package_hash;
@@ -78,29 +81,25 @@ else{
 #commands
 ####################
 sub install(){
-		&_set_prefix();
-		if($installed_packages{$pack}{$stable_status}){
-				print "$pack is installed, try \n ./pm update $pack $stable_status\n";
-				return;
+	&_set_prefix();
+	my $install_status = $installed_packages{$pack}{$stable_status}
+	if($install_status>1){
+		print "$pack is installed, try \n ./pm update $pack $stable_status\n";
+		return;
+	}
+	my ($download_url, $download_method, $install_method) = @{$package_ref->{$pack}}[1..3];
+	for my $dependency (split ",",$dependencies{$pack}){
+		if(!$installed_packages{$dependency}){
+			if(system qq(./pm i $dependency 0)){
+				die "$dependency install failed";
+			}
 		}
-		my ($download_url, $download_method, $install_method) =
-				  @{$package_ref->{$pack}}[1..3];
-		for my $dependency (split ",",$dependencies{$pack}){
-				if(!$installed_packages{$dependency}){
-						if(system qq(./pm i $dependency 0)){
-								die "$dependency install failed";
-						}
-				}
-		}
-		if(-d "$repo/$pack_id" || -f "$repo/$pack_id.tar.gz"){
-				print "$pack already exist, if you want to download new pack, please try \n ./pm update $pack\n";
-		}
-		else{
-				&_download($download_url, $download_method);
-		}
-
-		&_build($install_method);
-		&_write_list();
+	}
+	if(!$install_status){
+		&_download($download_url, $download_method);
+	}
+	&_build($install_method);
+	&_write_list();
 }
 sub update(){
 		&_set_prefix();
@@ -121,24 +120,25 @@ sub generate(){
 #internal methods
 ####################
 sub _read_list(){
-		my $c=0;
-		open A,"$dependency_list";
-		while (<A>){
-        chomp;
-        my ($package_name, $dependencies)=split "\t";
-				$dependencies{$package_name}=$dependencies;
-    }
-		close A;
-		open A,"$package_list";
-		while (<A>){
-				chomp;
-				my ($package_name, $stable_status)=split "\t";
-				next if $package_name eq "";
-				$stable_status=0 if(!$stable_status);
-				$stable_status=2 if($stable_status>1);
-				$installed_packages{$package_name}{$stable_status}=1;
-		}
-		close A;
+	my $c=0;
+	open A,"$dependency_list";
+	while (<A>){
+        	chomp;
+        	my ($package_name, $dependencies)=split "\t";
+		$dependencies{$package_name}=$dependencies;
+    	}
+	close A;
+	open A,"$package_list";
+	while (<A>){
+		chomp;
+		my ($package_name, $stable_status, $install_status)=split "\t";
+		next if $package_name eq "";
+		$stable_status=0 if(!$stable_status);
+		$stable_status=2 if($stable_status>1);
+		$install_status=1 if(!$install_status);
+		$installed_packages{$package_name}{$stable_status}=$install_status;
+	}
+	close A;
 		open A,"cat $eve_home/conf/*.packages |";
 		while (<A>){
 				chomp;
@@ -169,13 +169,14 @@ sub _read_list(){
 		
 }
 sub _write_list(){
-		open O,">$package_list";
-		for my $pack (sort keys %installed_packages){
-				for my $stable_status (sort keys %{$installed_packages{$pack}}){
-						print O "$pack\t$stable_status\n";
-				}
+	
+	open O,">$package_list";
+	for my $pack (sort keys %installed_packages){
+		for my $stable_status (sort keys %{$installed_packages{$pack}}){
+			print O "$pack\t$stable_status\n";
 		}
-		close O;
+	}
+	close O;
 }
 sub _set_prefix(){
 		my $exist_stable=$stable_package_hash{$pack};
@@ -207,7 +208,7 @@ sub _set_prefix(){
 				$package_ref=\%local_package_hash;
 		}
 		$pack_id = "$pack\_$stable_status_string";
-		$prefix = "$eve_home/$stable_status_string";
+		$prefix = "$repo/$stable_status_string";
 		$root_dir="$repo/$pack_id";
 		$tmp_dir="$repo/$pack_id\_tmp";
 		$log_file="$repo/$pack_id.log";
@@ -228,29 +229,29 @@ sub _download(){
 				my @args=split ",",$arg;
 				$download_url=&{\&{$function}}($download_url, @args);
 		}
+	$installed_packages{$pack}{$stable_status}=1;
+	
 }
 sub _build(){
-		my ($install_method_list)=@_;
-		my ($function, $arg);
-    my @install_method_list = split /\|/,$install_method_list;
+	my ($install_method_list)=@_;
+	my ($function, $arg);
+	my @install_method_list = split /\|/,$install_method_list;
 				
-		print "building $pack\n";
-	  mkdir "$tmp_dir"
-				|| die "cannot mkdir $tmp_dir";
-    for my $install_method (@install_method_list){
+	print "building $pack\n";
+	mkdir "$tmp_dir" || die "cannot mkdir $tmp_dir";
+	for my $install_method (@install_method_list){
 
-        if($install_method=~/^([^:]+):?(.+)?$/){
-            ($function, $arg)=($1,$2);
-        }
-        else{
-            die "build method string is not valid: \n$install_method";
-        }
-        my @args=split ",",$arg;
-        &{\&{$function}}(@args);
-    }
-		&remove_tree("$tmp_dir");
-		$installed_packages{$pack}{$stable_status}=1;
-
+		if($install_method=~/^([^:]+):?(.+)?$/){
+            		($function, $arg)=($1,$2);
+        	}	
+        	else{
+       			die "build method string is not valid: \n$install_method";
+        	}
+        	my @args=split ",",$arg;
+        	&{\&{$function}}(@args);
+    	}
+	&remove_tree("$tmp_dir");
+	$installed_packages{$pack}{$stable_status}=2;
 }
 sub _sync_system(){
 		my ($cmd, $label)=@_;
@@ -316,15 +317,22 @@ sub latest() {
 
 sub nav(){
 		my ($download_url, $href)=@_;
-		my $response = $ua->get($download_url) or die 'Unable to get page $download_url';
-		my $content=$response->decoded_content;
-		$download_url=~/^(http|https|ftp):\/\/([^\/]+)/;
-		my ($protocal, $domain)=($1,$2);
+		my $response = new HTTP::Tiny->new->get($download_url);
+		die 'Unable to get page $download_url' if !$response->{success};;
+		my $content=$response->{content};
+		$download_url=~/^((http|https|ftp):\/\/([^\/]+)\S+(?:[^\/]+)?)$/;
+		my ($base, $protocal, $domain)=($1,$2,$3);
 		die "protocal $protocal is not identified" if !$protocal;
-		if($content=~/href=\"(.*($href).*)\"/){
+		if($content=~/href=[\'\"]([0-9a-zA-z_\-\:\/]*$href[0-9a-zA-z_\-\:\/]*)[\'\"]/s){
 				my $url = $1;
-				if($url!~/^(http|https|ftp):\/\/([^\/]+)/){
-						$url=$response->base."/$url";
+				if($url=~/^http|https|ftp:\/\/[^\/]+/){
+					$url=$url;
+				}
+				elsif($url=~/^\//){
+					$url=$domain."/$url";
+				}
+				else{
+					$url=$base."/$url";
 				}
 				return $url;
 		}
@@ -332,6 +340,10 @@ sub nav(){
 				die "href not find in page $download_url, $pack download failed";
 		}
 
+}
+sub parse(){
+}
+sub apply(){
 }
 sub wget(){
 		my ($download_url)=@_;
@@ -342,24 +354,24 @@ sub wget(){
 
 }
 sub git(){
-		my ($repo)=@_;
+		my ($addr)=@_;
 		print "git clone $repo $pack_id\n";
 		if($is_update){
 				&_sync_system(qq(cd $repo/$pack_id && git pull origin master), "git");
 		}
 		else{
-				&_sync_system(qq(cd $repo && git clone $repo $pack_id), "git");
+				&_sync_system(qq(cd $repo && git clone $addr $pack_id), "git");
 		}
 }
 sub hg(){
-		my ($repo)=@_;
+		my ($addr)=@_;
 		print "hg clone $repo $pack\n";
-    &_sync_system(qq(cd $repo && hg clone $repo $pack_id),"hg");
+    &_sync_system(qq(cd $repo && hg clone $addr $pack_id),"hg");
 }
 sub svn(){
-		my ($repo)=@_;
+		my ($addr)=@_;
 		print "svn checkout $repo $pack\n";
-		&_sync_system(qq(cd $eve_home/repo && svn checkout $repo $pack_id),"svn");
+		&_sync_system(qq(cd $eve_home/repo && svn checkout $addr $pack_id),"svn");
 }
 ####################
 #install methods
