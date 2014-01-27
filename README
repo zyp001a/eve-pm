@@ -1,3 +1,10 @@
-You must have <gzip>, <tar>, <gcc>, <perl>, <wget> installed to continue...
+Please run:
+	source env.sh
+to set environment first.
+
+You must have <gzip>, <tar>, <gcc>, <perl>, <libwww-perl>, <wget> installed to continue...
+To install libwww-perl
+	sudo apt-get install libwww-perl
+or	perl -MCPAN -e 'install LWP'
 also, <mercurial>, <git>, <svn> is needed 
 
