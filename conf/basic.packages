@@ -1,2 +1,4 @@
-perl	perl	http://www.perl.org/get.html	0	nav:tar\.gz|wget	tar|sh:sh Configure -de,make|inst
-xz	free general-purpose data compression	http://tukaani.org/xz/	0	nav:tar\.gz|wget	tar|conf|inst
+perl	perl	http://www.perl.org/get.html	1	nav:tar\.gz|wget	tar|sh:sh Configure -de,make|inst
+python	python	http://www.python.org/getit/	1	nav:Python-2[\d\.]+tar\.gz|wget	tar|conf|inst
+xz	free general-purpose data compression	http://tukaani.org/xz/	1	nav:tar\.gz|wget	tar|conf|inst
+pkg-config	pkg-config	http://cgit.freedesktop.org/pkg-config/	1	nav:tar\.gz|wget	tar|autoconf|conf|inst

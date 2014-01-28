@@ -9,7 +9,7 @@ if(!$ENV{"EVE_HOME"}){
 		die "You must set EVE_HOME first\n";
 }
 my $eve_home = $ENV{"EVE_HOME"};
-my $string="ftp://ftp.gnu.org/gnu/";
+my $string="ftp://ftp.gnome.org/pub/gnome/sources";
 
 my ($server,$user,$pass,$directory);
 if($string=~/^ftp:\/\/(?:([^:\@]+):([^\@]+)\@)?([^\/]+)\/(\S+)/){
@@ -27,13 +27,10 @@ $ftp->binary()
 $ftp->cwd($directory)
 		or die "Can not change directories to $directory : $@\n";
 my @files = $ftp->dir();
-open O,">$eve_home/conf/gnu.packages";
+open O,">$eve_home/conf/genome.packages";
 foreach my $file (@files) {
 		my @l=split /\s+/,$file;
-		next if substr($l[0],0,1) ne 'd';
-		next if !islower(substr($l[-1],0,1));
-		next if $l[-1] =~/archive/;
-		print O "$l[-1]\tgnu $l[-1]\tftp://ftp.gnu.org/gnu/$l[-1]/\t1\tlatest:tar\\.[glxb]z2?\$|wget\ttar|conf|inst\n";
+		print O "$l[-1]\tgenome $l[-1]\tftp://ftp.gnome.org/pub/gnome/sources/$l[-1]/\t1\tlatest:^(?!cache.json)|latest:tar\\.[glxb]z2?\$|wget\ttar|conf|inst\n";
 }
 close O;
 $ftp->close();

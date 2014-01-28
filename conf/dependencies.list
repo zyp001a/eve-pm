@@ -1,3 +1,8 @@
 gcc	gmp,mpfr,mpc
 wget	gnutls
-
+autoconf	m4
+automake	m4
+libtool	m4
+texinfo	ncurse
+glibc	gawk,texinfo,gettext
+emacs	ncurse

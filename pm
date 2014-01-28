@@ -9,11 +9,22 @@ use Net::FTP;
 #use File::Basename;
 use File::Path qw(remove_tree);
 use Fatal qw(open close);
-my ($cmd,$pack,$stable_status)=@ARGV;
+my ($cmd,$pack,@op)=@ARGV;
+my $stable_status;
+my $conf_op="";
+for my $op (@op){
+	if($op=~/^ss(\d)/){
+		$stable_status=$1;
+	}
+	else{
+		$conf_op.=" $op";
+	}
+}
 #stable_status: 
-#	0->stable
-#	1->dev
-#	2->local
+#	0->binary
+#	1->stable
+#	2->dev
+#	3->local
 
 my $useage = <<END;
 Useage:
@@ -21,10 +32,10 @@ Useage:
 END
 
 if(!$pack){
-		die $useage;
+	die $useage;
 }
 if(!$ENV{"EVE_HOME"}){
-		die "You must set EVE_HOME first\n";
+	die "You must set EVE_HOME first\n";
 }
 
 my $eve_home = $ENV{"EVE_HOME"};
@@ -32,7 +43,7 @@ my $repo = "$eve_home/repo";
 if($ENV{"EVE_REPO"}){
 	$repo=$ENV{"EVE_REPO"};
 }
-
+my %binary_package_hash;
 my %stable_package_hash;
 my %dev_package_hash;
 my %local_package_hash;
@@ -40,7 +51,7 @@ my $package_ref;
 my %installed_packages;
 my %dependencies;
 my $log_file;
-my $package_list="$eve_home/conf/installed_package.list";
+my $package_list="$repo/installed_package.list";
 my $dependency_list="$eve_home/conf/dependencies.list";
 
 
@@ -56,24 +67,24 @@ my $tmp_dir;
 ####################
 &_read_list();
 if($cmd eq "install" || $cmd eq "i"){
-		$is_update=0;
-		&install();
+	$is_update=0;
+	&install();
 }
 elsif($cmd eq "update" || $cmd eq "u"){
-		$is_update=1;
-		&update();
+	$is_update=1;
+	&update();
 }
 elsif($cmd eq "erase" || $cmd eq "e"){
-		&erase();
+	&erase();
 }
 elsif($cmd eq "search" || $cmd eq "s"){
-		&search();
+	&search();
 }
 elsif($cmd eq "generate" || $cmd eq "g"){
-		&generate();
+	&generate();
 }
 else{
-		die $useage;
+	die $useage;
 }
 
 
@@ -82,7 +93,7 @@ else{
 ####################
 sub install(){
 	&_set_prefix();
-	my $install_status = $installed_packages{$pack}{$stable_status}
+	my $install_status = $installed_packages{$pack}{$stable_status};
 	if($install_status>1){
 		print "$pack is installed, try \n ./pm update $pack $stable_status\n";
 		return;
@@ -90,7 +101,7 @@ sub install(){
 	my ($download_url, $download_method, $install_method) = @{$package_ref->{$pack}}[1..3];
 	for my $dependency (split ",",$dependencies{$pack}){
 		if(!$installed_packages{$dependency}){
-			if(system qq(./pm i $dependency 0)){
+			if(system qq(./pm i $dependency ss0)){
 				die "$dependency install failed";
 			}
 		}
@@ -99,14 +110,6 @@ sub install(){
 		&_download($download_url, $download_method);
 	}
 	&_build($install_method);
-	&_write_list();
-}
-sub update(){
-		&_set_prefix();
-		my ($download_url, $download_method, $install_method) =
-				@{$package_ref->{$pack}}[1..3];		
-	#	&_download($download_url, $pack, $download_method);
-	#	&_build($pack, $install_method);
 }
 sub erase(){
 }
@@ -128,6 +131,7 @@ sub _read_list(){
 		$dependencies{$package_name}=$dependencies;
     	}
 	close A;
+	if(-f $package_list){
 	open A,"$package_list";
 	while (<A>){
 		chomp;
@@ -139,33 +143,41 @@ sub _read_list(){
 		$installed_packages{$package_name}{$stable_status}=$install_status;
 	}
 	close A;
-		open A,"cat $eve_home/conf/*.packages |";
-		while (<A>){
-				chomp;
-				my ($package_name, $description, $download_url, $stable_status,
-						$download_method, $install_method) = split "\t";
-				if(!$download_url){
-						die "packages not validate:\n $_\n";
-				}
-				if(!$stable_status){
-						$stable_package_hash{$package_name} = 
-								[$description, $download_url, 
-								 $download_method, $install_method];
-				}
-				elsif($stable_status==1){
-						$dev_package_hash{$package_name} =
-                [$description, $download_url,
-                 $download_method, $install_method];
-				}
-				else{
-						$local_package_hash{$package_name} =
-                [$description, $download_url,
-                 $download_method, $install_method];
-				}
-				$c++;
+
+}
+	open A,"cat $eve_home/conf/*.packages |";
+	while (<A>){
+		chomp;
+		my ($package_name, $description, $download_url, $stable_status,
+			$download_method, $install_method) = split "\t";
+		if(!$package_name){ next;}
+		if(!$download_url){
+			die "packages not validate:\n $_\n";
 		}
-		close A;
-		print "$c packages avaiable\n";
+		if(!$stable_status){
+			$binary_package_hash{$package_name} = 
+				[$description, $download_url, 
+					 $download_method, $install_method];
+				}
+		elsif($stable_status==1){
+			$stable_package_hash{$package_name} = 
+				[$description, $download_url, 
+					 $download_method, $install_method];
+		}
+		elsif($stable_status==2){
+			$dev_package_hash{$package_name} =
+                [$description, $download_url,
+                 $download_method, $install_method];
+		}
+		else{
+			$local_package_hash{$package_name} =
+                [$description, $download_url,
+                 $download_method, $install_method];
+		}
+		$c++;
+	}
+	close A;
+	print "$c packages avaiable\n";
 		
 }
 sub _write_list(){
@@ -179,6 +191,7 @@ sub _write_list(){
 	close O;
 }
 sub _set_prefix(){
+		my $exist_binary=$binary_package_hash{$pack};
 		my $exist_stable=$stable_package_hash{$pack};
 		my $exist_dev=$dev_package_hash{$pack};
 		my $exist_local=$local_package_hash{$pack};
@@ -187,26 +200,31 @@ sub _set_prefix(){
 				&search();
 				die;
 		}
-		elsif($exist_stable && !$stable_status){
-				$prefix="$eve_home/stable";
-				print "$pack, stable version is selected\n";
+		elsif($exist_binary && !$stable_status){
+				print "$pack, binary version is selected\n";
 				$stable_status=0;
+				$stable_status_string="binary";
+				$package_ref=\%binary_package_hash;
+		}
+		elsif($exist_stable && $stable_status<=1){
+				print "$pack, stable version is selected\n";
+				$stable_status=1;
 				$stable_status_string="stable";
 				$package_ref=\%stable_package_hash;
 		}
-		elsif($exist_dev && $stable_status<=1){
-				$prefix="$eve_home/dev";
+		elsif($exist_dev && $stable_status<=2){
 				print "$pack, development version is selected\n";
-				$stable_status=1;
+				$stable_status=2;
 				$stable_status_string="dev";
 				$package_ref=\%dev_package_hash;
 		}
 		else{
 				print "$pack, local modified version is selected\n";
-				$stable_status=2;
+				$stable_status=3;
 				$stable_status_string="local";
 				$package_ref=\%local_package_hash;
 		}
+	$pack=~s/\//--/g;
 		$pack_id = "$pack\_$stable_status_string";
 		$prefix = "$repo/$stable_status_string";
 		$root_dir="$repo/$pack_id";
@@ -231,6 +249,7 @@ sub _download(){
 		}
 	$installed_packages{$pack}{$stable_status}=1;
 	
+	&_write_list();
 }
 sub _build(){
 	my ($install_method_list)=@_;
@@ -252,6 +271,7 @@ sub _build(){
     	}
 	&remove_tree("$tmp_dir");
 	$installed_packages{$pack}{$stable_status}=2;
+	&_write_list();
 }
 sub _sync_system(){
 		my ($cmd, $label)=@_;
@@ -271,6 +291,9 @@ sub _sync_system(){
 sub latest() {
 		print "try to get latest version\n";
 		my ($string, $regex)=@_;
+	if($regex eq ""){
+		$regex=".*";
+	}
 		my ($server,$user,$pass,$directory);
 		if($string=~/^ftp:\/\/(?:([^:\@]+):([^\@]+)\@)?([^\/]+)\/(\S+)/){
 				($server,$user,$pass,$directory)=($3,$1,$2,$4);
@@ -293,10 +316,10 @@ sub latest() {
 		my $latest_file = '';
 		my $latest_time = 0;
 		foreach my $file (@files) {
-#				warn $file;
+
 				next if($file!~/$regex/);
 				my $modtime = $ftp->mdtm($file);
-#				warn "$file\t$modtime\n";
+				#warn "$file\t$modtime\n";
 				if($latest_file eq "") {
 						$latest_file = $file;
 						$latest_time = $modtime;
@@ -305,25 +328,27 @@ sub latest() {
 				if($modtime > $latest_time) {
 #						warn "\t$latest_time $modtime";
 #						warn "\t$latest_file $file";
+					if($file=~/(\S+).xz$/ && $latest_file eq "$1.gz"){	next;
+					}
 						$latest_file = $file;
 						$latest_time = $modtime;
 				}
 		}
 		$ftp->close();			 
 		print "#########\n$latest_file\n###########\n";
-		die;
+		#die;
 		return "$string\/$latest_file";
 }
 
 sub nav(){
 		my ($download_url, $href)=@_;
-		my $response = new HTTP::Tiny->new->get($download_url);
+		my $response = HTTP::Tiny->new->get($download_url);
 		die 'Unable to get page $download_url' if !$response->{success};;
 		my $content=$response->{content};
 		$download_url=~/^((http|https|ftp):\/\/([^\/]+)\S+(?:[^\/]+)?)$/;
 		my ($base, $protocal, $domain)=($1,$2,$3);
 		die "protocal $protocal is not identified" if !$protocal;
-		if($content=~/href=[\'\"]([0-9a-zA-z_\-\:\/]*$href[0-9a-zA-z_\-\:\/]*)[\'\"]/s){
+		if($content=~/href\s*=\s*[\'\"]([0-9a-zA-z_\-\:\/\.]*$href[0-9a-zA-z_\-\:\/\.]*)[\'\"]/s){
 				my $url = $1;
 				if($url=~/^http|https|ftp:\/\/[^\/]+/){
 					$url=$url;
@@ -347,6 +372,8 @@ sub apply(){
 }
 sub wget(){
 		my ($download_url)=@_;
+	
+	system qq(echo $download_url >>$log_file); 
 		if($is_update){
 				unlink "$repo/$pack_id.tar.gz";
 		}
@@ -378,7 +405,8 @@ sub svn(){
 ####################
 sub autoconf(){
 		my (@args)=@_;
-		&_sync_system(qq(cd $repo/$pack_id && autoreconf -fi),"autoconf");
+		&_sync_system(qq(cd $root_dir && autoreconf -fi),"autoconf");
+
 }
 sub tar(){
 		my (@args)=@_;
@@ -387,11 +415,12 @@ sub tar(){
 }
 sub conf(){
 		my (@args)=@_;
-		&_sync_system(qq(cd $tmp_dir && $root_dir/configure --prefix=$prefix >>$log_file && make), "./configure & make");
+
+		&_sync_system(qq(cd $tmp_dir && $root_dir/configure $conf_op >>$log_file && make), "./configure & make");
 }
 sub inst(){
 		my (@args)=@_;
-		&_sync_system(qq(cd $tmp_dir && make install),"make install");
+		&_sync_system(qq(cd $tmp_dir && sudo make install),"make install");
 }
 sub sh(){
 		my (@args)=@_;

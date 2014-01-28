@@ -1,9 +1,9 @@
-autoconf	GNU build tools	git://git.sv.gnu.org/autoconf	1	git	autoconf|conf|inst
-automake	GNU build tools	git://git.savannah.gnu.org/automake.git	1	git	autoconf|conf|inst
-libtool	GNU build tools	git://git.savannah.gnu.org/libtool.git	1	git
-gcc	gcc	git://gcc.gnu.org/git/gcc.git	1	git	conf|inst
-git	git	https://github.com/git/git	1	git	conf|inst
-gmp	Multiple Precision Arithmetic Library	https://gmplib.org/repo/gmp	1	hg	autoconf
-python	python	http://hg.python.org/cpython	1	hg	
-mpfr	multiple-precision floating-point computations	svn://scm.gforge.inria.fr/svn/mpfr/trunk	1	svn
-mpc	arithmetic of complex numbers with arbitrarily high precision and correct rounding	svn://scm.gforge.inria.fr/svnroot/mpc/trunk	1	svn
+autoconf	GNU build tools	git://git.sv.gnu.org/autoconf	2	git	autoconf|conf|inst
+automake	GNU build tools	git://git.savannah.gnu.org/automake.git	2	git	autoconf|conf|inst
+libtool	GNU build tools	git://git.savannah.gnu.org/libtool.git	2	git
+gcc	gcc	git://gcc.gnu.org/git/gcc.git	2	git	conf|inst
+git	git	https://github.com/git/git	2	git	conf|inst
+gmp	Multiple Precision Arithmetic Library	https://gmplib.org/repo/gmp	2	hg	autoconf
+python	python	http://hg.python.org/cpython	2	hg	
+mpfr	multiple-precision floating-point computations	svn://scm.gforge.inria.fr/svn/mpfr/trunk	2	svn
+mpc	arithmetic of complex numbers with arbitrarily high precision and correct rounding	svn://scm.gforge.inria.fr/svnroot/mpc/trunk	2	svn

@@ -1,0 +1,10 @@
+#!/usr/bin/env perl
+use HTTP::Tiny;
+
+my $response = HTTP::Tiny->new->get('http://cgit.freedesktop.org/');
+
+    die "Failed!\n" unless $response->{success};
+    @list=$response->{content}=~/<a title=\'([^\']+)\'/g ;
+for $l (@list){
+	print $l,"\n";
+}
