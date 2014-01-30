@@ -33,7 +33,7 @@ foreach my $file (@files) {
 		next if substr($l[0],0,1) ne 'd';
 		next if !islower(substr($l[-1],0,1));
 		next if $l[-1] =~/archive/;
-		print O "$l[-1]\tgnu $l[-1]\tftp://ftp.gnu.org/gnu/$l[-1]/\t1\tlatest:tar\\.[glxb]z2?\$|wget\ttar|conf|inst\n";
+		    print O "$l[-1]\tgnu $l[-1]\tftp://ftp.gnu.org/gnu/$l[-1]/\t1\tlatest:tar\\.[glxb]z2?\$|wget\ttar|conf|inst\n";
 }
 close O;
 $ftp->close();

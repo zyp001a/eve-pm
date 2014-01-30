@@ -1,9 +1,11 @@
-autoconf	GNU build tools	git://git.sv.gnu.org/autoconf	2	git	autoconf|conf|inst
-automake	GNU build tools	git://git.savannah.gnu.org/automake.git	2	git	autoconf|conf|inst
+autoconf	GNU build tools	git://git.sv.gnu.org/autoconf	2	git	
+automake	GNU build tools	git://git.savannah.gnu.org/automake.git	2	git	
 libtool	GNU build tools	git://git.savannah.gnu.org/libtool.git	2	git
-gcc	gcc	git://gcc.gnu.org/git/gcc.git	2	git	conf|inst
-git	git	https://github.com/git/git	2	git	conf|inst
-gmp	Multiple Precision Arithmetic Library	https://gmplib.org/repo/gmp	2	hg	autoconf
+gcc	gcc	git://gcc.gnu.org/git/gcc.git	2	git	
+git	git	https://github.com/git/git	2	git	
+gmp	Multiple Precision Arithmetic Library	https://gmplib.org/repo/gmp	2	hg	
 python	python	http://hg.python.org/cpython	2	hg	
 mpfr	multiple-precision floating-point computations	svn://scm.gforge.inria.fr/svn/mpfr/trunk	2	svn
 mpc	arithmetic of complex numbers with arbitrarily high precision and correct rounding	svn://scm.gforge.inria.fr/svnroot/mpc/trunk	2	svn
+curl	c url	git://github.com/bagder/curl.git	2	git
+aircrack-ng	aircrack-ng	http://svn.aircrack-ng.org/trunk/	2	svn	

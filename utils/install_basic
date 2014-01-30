@@ -5,6 +5,10 @@ $pm i xz
 $pm i autoconf
 $pm i automake 
 $pm i libtool 
+$pm i gmp
+$pm i mpfr
+$pm i mpc
+$pm i gcc
 $pm i gawk
 $pm i texinfo
 $pm i gettext

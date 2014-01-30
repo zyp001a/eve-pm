@@ -1,4 +1,10 @@
 perl	perl	http://www.perl.org/get.html	1	nav:tar\.gz|wget	tar|sh:sh Configure -de,make|inst
 python	python	http://www.python.org/getit/	1	nav:Python-2[\d\.]+tar\.gz|wget	tar|conf|inst
+nodejs	node.js	http://nodejs.org/download/	1	nav:tar\.gz|wget	tar|conf|inst
+php	php	http://php.net/downloads.php	1	nav:tar\.gz|wget	tar|conf|inst
 xz	free general-purpose data compression	http://tukaani.org/xz/	1	nav:tar\.gz|wget	tar|conf|inst
+isl0.12	Integer Set Library	http://isl.gforge.inria.fr/isl-0.12.tar.gz	1	wget	tar|conf|inst
 pkg-config	pkg-config	http://cgit.freedesktop.org/pkg-config/	1	nav:tar\.gz|wget	tar|autoconf|conf|inst
+aircrack-ng	aircrack-ng	http://www.aircrack-ng.org/	1	nav:tar\.gz|wget	tar|conf|inst
+iw	iw	https://www.kernel.org/pub/software/network/iw/iw-3.11.tar.bz2	1	wget	tar|sh:make|inst
+

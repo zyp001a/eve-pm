@@ -14,18 +14,5 @@ echo "use $EVE_REPO as EVE_REPO"
 if ! [ -d $EVE_REPO ]; then
 	mkdir $EVE_REPO
 fi
-if ! [ -d $EVE_REPO/binary ]; then
-	mkdir $EVE_REPO/binary
-fi
-if ! [ -d $EVE_REPO/stable ]; then
-	mkdir $EVE_REPO/stable
-fi
-if ! [ -d $EVE_REPO/dev ]; then
-	mkdir $EVE_REPO/dev
-fi
-if ! [ -d $EVE_REPO/local ]; then
-	mkdir $EVE_REPO/local
-fi
 
-export PATH=$EVE_REPO/binary/bin:$EVE_REPO/stable/bin:$EVE_REPO/dev/bin:$EVE_REPO/local/bin:/bin:/usr/bin
-export LD_LIBRARY_PATH=
+
