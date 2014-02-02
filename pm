@@ -64,13 +64,15 @@ my $is_update=0;
 my $prefix;
 my $stable_status_string;
 my $pack_id;
-my $root_dir;
-my $tmp_dir;
+
+my %dirs;
+
 my $filename;
 ####################
 #main logic
 ####################
 &_read_list();
+&_set_prefix();
 if($cmd eq "install" || $cmd eq "i"){
     $is_update=0;
     &install();
@@ -97,16 +99,14 @@ else{
 #commands
 ####################
 sub install(){
-    &_set_prefix();
+
     my ($download_url, $download_method, $install_method) = @{$package_ref->{$pack}}[1..3];
 
     &_download($download_url, $download_method);
-    if($stable_status<2){
-	&_build($install_method);
-    }
+
+    &_build($install_method);
 }
 sub update(){
-    &_set_prefix();
     my ($download_url, $download_method, $install_method) = @{$package_ref->{$pack}}[1..3];
     #if not new &_download($download_url, $download_method);
     &_build($install_method);
@@ -114,6 +114,17 @@ sub update(){
 sub erase(){
 }
 sub search(){
+    warn "Search $pack...\n";
+    for my $ipack (sort (keys %binary_package_hash, 
+			 keys %stable_package_hash,
+			 keys %dev_package_hash,
+			 keys %local_package_hash)){
+	warn "$ipack\t$pack\n";
+	my ($download_url, $download_method, $install_method) = @{$package_ref->{$ipack}}[1..3];
+	if($ipack=~/$pack/){
+	    print $ipack,"\n";
+	}
+    }
 }
 sub generate(){
 }
@@ -164,7 +175,7 @@ sub _set_prefix(){
     my $exist_stable=$stable_package_hash{$pack};
     my $exist_dev=$dev_package_hash{$pack};
     my $exist_local=$local_package_hash{$pack};
-    if(!$exist_dev && !$exist_stable){
+    if(!$exist_binary && !$exist_dev && !$exist_stable && !$exist_local){
 	print "$pack is not exist\n";
 	&search();
 	die;
@@ -196,8 +207,9 @@ sub _set_prefix(){
     $pack=~s/\//--/g;
     $pack_id = "$pack\_$stable_status_string";
     $prefix = "$repo/$stable_status_string";
-    $root_dir="$repo/$pack_id";
-    $tmp_dir="$repo/$pack_id\_tmp";
+    $dirs{root}="$repo/$pack_id";
+    $dirs{tmp}="$repo/$pack_id\_tmp";
+    $dirs{make}=$dirs{tmp};
     $log_file="$repo/$pack_id.log";
     unlink $log_file;
 }
@@ -214,6 +226,7 @@ sub _download(){
 	    die "download method string is not valid: \n$download_method";
 	}
 	my @args=split ",",$arg;
+
 	$download_url=&{\&{$function}}($download_url, @args);
     }
 
@@ -226,7 +239,7 @@ sub _build(){
     my @install_method_list = split /\|/,$install_method_list;
     
     print "building $pack\n";
-    mkdir "$tmp_dir" || die "cannot mkdir $tmp_dir";
+    mkdir "$dirs{tmp}" || die "cannot mkdir $dirs{tmp}";
     for my $install_method (@install_method_list){
 
 	if($install_method=~/^([^:]+):?(.+)?$/){
@@ -238,14 +251,14 @@ sub _build(){
 	my @args=split ",",$arg;
 	&{\&{$function}}(@args);
     }
-    &remove_tree("$tmp_dir");
+    &remove_tree("$dirs{tmp}");
 
 
 }
 sub _sync_system(){
     my ($cmd, $label)=@_;
     if(system "$cmd >>$log_file"){
-#				&remove_tree("$tmp_dir");
+#				&remove_tree("$dirs{tmp}");
 	die "$label failed\n $cmd\n";
     }
     else{
@@ -308,7 +321,7 @@ GETDIR:
     my $is_latest_dir;
     foreach my $filestr (@filestr) {
 	my ($file,$modtime,$isdir)=&_parse_ftp_list_string($filestr);
-	next if($file!~/$regex/ && !$isdir);
+	next if(($file!~/$regex/ && !$isdir) || ($isdir && $file!~/\d\./));
 	warn $file,"\t$modtime\n";	
 	if($latest_file eq "") {
 	    $latest_file = $file;
@@ -343,22 +356,40 @@ GETDIR:
 
 sub nav(){
     my ($download_url, $href)=@_;
-    my $response = HTTP::Tiny->new->get($download_url);
-    die 'Unable to get page $download_url' if !$response->{success};;
-    my $content=$response->{content};
-    $download_url=~/^((http|https|ftp):\/\/([^\/]+)\S+(?:[^\/]+)?)$/;
-    my ($base, $protocal, $domain)=($1,$2,$3);
+    warn "navigate $download_url\n";
+    $download_url=~/^(((http|https|ftp):\/\/[^\/]+)\S+(?:[^\/]+)?)$/;
+    my ($base, $domain, $protocal)=($1,$2,$3);
     die "protocal $protocal is not identified" if !$protocal;
+    my $response;
+    my $content;
+    if($protocal eq "https"){
+	$content=`wget -c $download_url -O -`;
+    }
+    else{
+	$response=HTTP::Tiny->new->get($download_url);
+	die "Unable to get page $download_url $@" if !$response->{success};;
+	$content=$response->{content};
+    }
+
+
+   
+    
+    
     if($content=~/href\s*=\s*[\'\"]([0-9a-zA-z_\-\:\/\.]*$href[0-9a-zA-z_\-\:\/\.]*)[\'\"]/s){
 	my $url = $1;
+
+	warn "-->match", $url,"\n";
 	if($url=~/^http|https|ftp:\/\/[^\/]+/){
 	    $url=$url;
 	}
+	elsif($url=~/^\/\//){
+	    $url="http:$url";
+	}
 	elsif($url=~/^\//){
-	    $url=$domain."/$url";
+	    $url=$domain."$url";
 	}
 	else{
-	    $url=$base."/$url";
+	    $url=$base."$url";
 	}
 	return $url;
     }
@@ -379,57 +410,100 @@ sub wget(){
     else{
 	die "invalid download url, wget $pack\n";
     }
+    if($download_url=~/([^\/]+\.gz)/ && $1 ne $filename){
+	$filename = $1;
+    }
+    if($download_url=~/([^\/]+\.zip)/ && $1 ne $filename){
+	$filename = $1;
+    }
+    warn "download filename", $filename,"\n";
     system qq(echo $download_url >>$log_file); 
+    &_sync_system(qq(cd $repo && wget -c $download_url -O $filename), "wget");
+}
+sub wgettmp(){
+    my ($download_url)=@_;
+    system qq(echo $download_url >>$log_file); 
+    &_sync_system(qq(cd $dirs{tmp} && wget -c $download_url), "wget");
 
-    &_sync_system(qq(cd $repo && wget -c $download_url), "wget");
-
+}
+sub newdir(){
+    &_sync_system(qq(mkdir $dirs{root}),"mkdir");
 }
 sub git(){
     my ($addr)=@_;
-    print "git clone $repo $pack_id\n";
-    if($is_update){
-	&_sync_system(qq(cd $repo/$pack_id && git pull origin master), "git");
-    }
-    else{
-	&_sync_system(qq(cd $repo && git clone $addr $pack_id), "git");
-    }
+    print "git clone $addr $pack_id\n";
+    &_sync_system(qq(cd $repo && git clone $addr $pack_id), "git");
 }
 sub hg(){
     my ($addr)=@_;
-    print "hg clone $repo $pack\n";
+    print "hg clone $addr $pack\n";
     &_sync_system(qq(cd $repo && hg clone $addr $pack_id),"hg");
 }
 sub svn(){
     my ($addr)=@_;
-    print "svn checkout $repo $pack\n";
+    print "svn checkout $addr $pack\n";
     &_sync_system(qq(cd $repo && svn checkout $addr $pack_id),"svn");
 }
+
 ####################
 #install methods
 ####################
 sub autoconf(){
     my (@args)=@_;
-    &_sync_system(qq(cd $root_dir && autoreconf -fi),"autoconf");
+    &_sync_system(qq(cd $dirs{root} && autoreconf -fi),"autoconf");
 
 }
 sub tar(){
     my (@args)=@_;
-    &_sync_system(qq(cd $tmp_dir && tar -xhf $repo/$filename),"tar");
-    $root_dir="$tmp_dir/*";
+    &_sync_system(qq(cd $dirs{tmp} && tar -xhf $repo/$filename),"tar");
+    $dirs{root}="$dirs{tmp}/*";
+}
+sub unzip(){
+    my (@args)=@_;
+    &_sync_system(qq(cd $dirs{tmp} && unzip $repo/$filename),"unzip");
+    $dirs{root}="$dirs{tmp}/*";
 }
 sub conf(){
     my (@args)=@_;
-
-    &_sync_system(qq(cd $tmp_dir && $root_dir/configure $conf_op >>$log_file && make), "./configure & make");
+    &_sync_system(qq(cd $dirs{make} && $dirs{root}/configure $conf_op >>$log_file && make), "./configure & make");
+}
+sub cmake(){
+    my (@args)=@_;
+    &_sync_system(qq(cd $dirs{make} && cmake * $conf_op  >>$log_file && make),  "cmake && make");
 }
 sub inst(){
     my (@args)=@_;
-    &_sync_system(qq(cd $tmp_dir && sudo make install),"make install");
+    &_sync_system(qq(cd $dirs{make} && sudo make install),"make install");
 }
 sub sh(){
     my (@args)=@_;
     for my $arg (@args){
-	&_sync_system("cd $root_dir && $arg","sh");
+	&_sync_system("cd $dirs{make} && $arg","sh");
     }
 }
+sub shroot(){
+    my (@args)=@_;
+    for my $arg (@args){
+	&_sync_system("cd $dirs{root} && $arg","sh");
+    }
+}
+sub shtmp(){
+    my (@args)=@_;
+    for my $arg (@args){
+	&_sync_system("cd $dirs{tmp} && $arg","sh");
+    }
+}
+sub setdir(){
+    my ($str1,$str2)=@_;
+    $dirs{$str1}=$dirs{$str2};
+}
 
+sub mvtmp(){
+    if(-d "$repo/$pack_id"){
+	remove_tree("$repo/$pack_id");
+    }
+    &_sync_system("mv $dirs{root} $repo/$pack_id","mv");
+}
+sub rmz(){
+    unlink $filename;
+}

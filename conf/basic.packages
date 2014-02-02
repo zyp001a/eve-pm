@@ -1,10 +1,18 @@
-perl	perl	http://www.perl.org/get.html	1	nav:tar\.gz|wget	tar|sh:sh Configure -de,make|inst
-python	python	http://www.python.org/getit/	1	nav:Python-2[\d\.]+tar\.gz|wget	tar|conf|inst
+perl	perl	http://www.perl.org/get.html	1	nav:tar\.gz|wget	tar|shroot:sh Configure -de,make|inst
+python	python	http://www.python.org/getit/	1	nav:Python-2[\d\.]+tar\|wget	tar|conf|inst
 nodejs	node.js	http://nodejs.org/download/	1	nav:tar\.gz|wget	tar|conf|inst
-php	php	http://php.net/downloads.php	1	nav:tar\.gz|wget	tar|conf|inst
+php	php	http://cn2.php.net/downloads.php	1	nav:tar\.gz|nav:tar.gz|wget	tar|conf|inst|sh:sudo make install-fpm
 xz	free general-purpose data compression	http://tukaani.org/xz/	1	nav:tar\.gz|wget	tar|conf|inst
 isl0.12	Integer Set Library	http://isl.gforge.inria.fr/isl-0.12.tar.gz	1	wget	tar|conf|inst
 pkg-config	pkg-config	http://cgit.freedesktop.org/pkg-config/	1	nav:tar\.gz|wget	tar|autoconf|conf|inst
 aircrack-ng	aircrack-ng	http://www.aircrack-ng.org/	1	nav:tar\.gz|wget	tar|conf|inst
 iw	iw	https://www.kernel.org/pub/software/network/iw/iw-3.11.tar.bz2	1	wget	tar|sh:make|inst
+composer	php package manager	https://getcomposer.org/installer	1	wgettmp	sh:php installer,sudo mv composer.phar /usr/local/bin/composer
+ncrack	ncrack	http://nmap.org/ncrack/	1	nav:tar\.gz|wget	tar|setdir:make,root|conf|inst
+theharvester	info gather	http://code.google.com/p/theharvester/downloads/list	1	nav:tar\.gz|wget	tar|mvtmp change all string www.google.com into www.google.com.hk in discovery/googlesearch.py to make things work
+metagoofil	info gather	https://code.google.com/p/metagoofil/downloads/list	1	nav:tar\.gz|wget	tar|mvtmp the version is wrong now
+goagent	proxy	https://code.google.com/p/goagent/	1	nav:\.zip|wget	unzip|mvtmp
+seat	search engine apis	http://midnightresearch.com/projects/search-engine-assessment-tool/	1	nav:\.tar\.bz2|wget	tar|mvtmp
+gnutls2	gnu gnutls	ftp://ftp.gnu.org/gnu/gnutls/	1	latest:2\.12\.1\d+\.tar\.[glxb]z2?$|wget	tar|conf|inst
+
 

@@ -1,0 +1,10 @@
+#!/bin/sh
+if ! [ -n "$EVE_HOME" ] ; then echo 'EVE_HOME is not set' exit; fi
+pm=$EVE_HOME/pm
+$pm i openvas6-lib
+$pm i openvas6-scanner
+$pm i openvas6-manager
+$pm i openvas6-admin
+$pm i openvas6-gsa
+$pm i openvas6-gsd
+$pm i openvas6-cli

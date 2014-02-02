@@ -1,0 +1,9 @@
+openvas6-lib	lib	http://wald.intevation.org/frs/download.php/1417/openvas-libraries-6.0.1.tar.gz	1	wget	tar|cmake|inst
+openvas6-scanner	scanner	http://wald.intevation.org/frs/download.php/1307/openvas-scanner-3.4.0.tar.gz	1	wget	tar|cmake|inst
+openvas6-manager	manager	http://wald.intevation.org/frs/download.php/1434/openvas-manager-4.0.4.tar.gz	1	wget	tar|cmake|inst
+openvas6-admin	admin	http://wald.intevation.org/frs/download.php/1442/openvas-administrator-1.3.2.tar.gz	1	wget	tar|cmake|inst
+
+openvas6-gsa	Greenbone Security Assistant	http://wald.intevation.org/frs/download.php/1422/greenbone-security-assistant-4.0.2.tar.gz	1	wget	tar|cmake|inst
+openvas6-gsd	Greenbone Security Desktop	http://wald.intevation.org/frs/download.php/1084/gsd-1.1.1.tar.gz	1	wget	tar|cmake|inst
+openvas6-cli	cli	http://wald.intevation.org/frs/download.php/1323/openvas-cli-1.2.0.tar.gz	1	wget	tar|cmake|inst
+

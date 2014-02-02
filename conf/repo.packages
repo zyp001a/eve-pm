@@ -8,4 +8,5 @@ python	python	http://hg.python.org/cpython	2	hg
 mpfr	multiple-precision floating-point computations	svn://scm.gforge.inria.fr/svn/mpfr/trunk	2	svn
 mpc	arithmetic of complex numbers with arbitrarily high precision and correct rounding	svn://scm.gforge.inria.fr/svnroot/mpc/trunk	2	svn
 curl	c url	git://github.com/bagder/curl.git	2	git
-aircrack-ng	aircrack-ng	http://svn.aircrack-ng.org/trunk/	2	svn	
+aircrack-ng	aircrack-ng	http://svn.aircrack-ng.org/trunk/	2	svn	shroot:make,sudo make install
+metagoofil	info gathering	http://metagoofil.googlecode.com/svn/trunk/	2	svn

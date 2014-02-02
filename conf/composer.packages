@@ -1,0 +1,1 @@
+laravel	laravel framework	null	1	newdir	shroot:composer create-project laravel/laravel laravel-setupx --prefer-dist

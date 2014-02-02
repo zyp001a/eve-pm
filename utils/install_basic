@@ -15,3 +15,5 @@ $pm i gettext
 $pm i glibc	#require gawk texinfo gettext
 $pm i ncurses
 $pm i emacs --without-x
+$pm i php --enable-fpm --enable-mbstring --with-openssl --with-mcrypt
+$pm i gnutls2 --without-p11-kit --with-included-libtasn1 #or not work
