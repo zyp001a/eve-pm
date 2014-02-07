@@ -7,12 +7,12 @@ isl0.12	Integer Set Library	http://isl.gforge.inria.fr/isl-0.12.tar.gz	1	wget	ta
 pkg-config	pkg-config	http://cgit.freedesktop.org/pkg-config/	1	nav:tar\.gz|wget	tar|autoconf|conf|inst
 aircrack-ng	aircrack-ng	http://www.aircrack-ng.org/	1	nav:tar\.gz|wget	tar|conf|inst
 iw	iw	https://www.kernel.org/pub/software/network/iw/iw-3.11.tar.bz2	1	wget	tar|sh:make|inst
-composer	php package manager	https://getcomposer.org/installer	1	wgettmp	sh:php installer,sudo mv composer.phar /usr/local/bin/composer
+composer	php package manager	https://getcomposer.org/installer	0	wgettmp	shcat:php|sh:sudo mv composer.phar /usr/local/bin/composer
 ncrack	ncrack	http://nmap.org/ncrack/	1	nav:tar\.gz|wget	tar|setdir:make,root|conf|inst
 theharvester	info gather	http://code.google.com/p/theharvester/downloads/list	1	nav:tar\.gz|wget	tar|mvtmp change all string www.google.com into www.google.com.hk in discovery/googlesearch.py to make things work
 metagoofil	info gather	https://code.google.com/p/metagoofil/downloads/list	1	nav:tar\.gz|wget	tar|mvtmp the version is wrong now
-goagent	proxy	https://code.google.com/p/goagent/	1	nav:\.zip|wget	unzip|mvtmp
+goagent	proxy	https://code.google.com/p/goagent/	0	nav:\.zip|wget	unzip|mvtmp
 seat	search engine apis	http://midnightresearch.com/projects/search-engine-assessment-tool/	1	nav:\.tar\.bz2|wget	tar|mvtmp
 gnutls2	gnu gnutls	ftp://ftp.gnu.org/gnu/gnutls/	1	latest:2\.12\.1\d+\.tar\.[glxb]z2?$|wget	tar|conf|inst
-
-
+rvm	ruby version manager	https://get.rvm.io	0	wgettmp	shcat:bash -s
+nodejs	node.js	http://nodejs.org/download/	0	nav:linux-x64.tar.gz|wget	tar|mvtmp|ln:bin/node|ln:bin/npm

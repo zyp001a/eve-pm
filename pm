@@ -33,7 +33,7 @@ for my $op (@op){
 
 my $useage = <<END;
 Useage:
-    .\/pm [ install|i | update|u | erase|e | search|s | generate|g ] package-name
+    .\/pm [ install|i | update|u | download|d | erase|e | search|s | generate|g ] package-name
 END
 
     if(!$pack){
@@ -77,6 +77,10 @@ if($cmd eq "install" || $cmd eq "i"){
     $is_update=0;
     &install();
 }
+elsif($cmd eq "download" || $cmd eq "d"){
+    $is_update=0;
+    &download();
+}
 elsif($cmd eq "update" || $cmd eq "u"){
     $is_update=1;
     &update();
@@ -101,10 +105,15 @@ else{
 sub install(){
 
     my ($download_url, $download_method, $install_method) = @{$package_ref->{$pack}}[1..3];
-
+    mkdir "$dirs{tmp}" || die "cannot mkdir $dirs{tmp}";
     &_download($download_url, $download_method);
 
     &_build($install_method);
+    &remove_tree("$dirs{tmp}");
+}
+sub download(){
+    my ($download_url, $download_method, $install_method) = @{$package_ref->{$pack}}[1..3];
+    &_download($download_url, $download_method);
 }
 sub update(){
     my ($download_url, $download_method, $install_method) = @{$package_ref->{$pack}}[1..3];
@@ -239,7 +248,7 @@ sub _build(){
     my @install_method_list = split /\|/,$install_method_list;
     
     print "building $pack\n";
-    mkdir "$dirs{tmp}" || die "cannot mkdir $dirs{tmp}";
+
     for my $install_method (@install_method_list){
 
 	if($install_method=~/^([^:]+):?(.+)?$/){
@@ -251,7 +260,7 @@ sub _build(){
 	my @args=split ",",$arg;
 	&{\&{$function}}(@args);
     }
-    &remove_tree("$dirs{tmp}");
+
 
 
 }
@@ -423,7 +432,8 @@ sub wget(){
 sub wgettmp(){
     my ($download_url)=@_;
     system qq(echo $download_url >>$log_file); 
-    &_sync_system(qq(cd $dirs{tmp} && wget -c $download_url), "wget");
+    $filename="binary";
+    &_sync_system(qq(cd $dirs{tmp} && wget -c $download_url -O $filename), "wget");
 
 }
 sub newdir(){
@@ -481,6 +491,12 @@ sub sh(){
 	&_sync_system("cd $dirs{make} && $arg","sh");
     }
 }
+sub shcat(){
+    my (@args)=@_;
+    for my $arg (@args){
+	&_sync_system("cd $dirs{make} && cat $filename | $arg","sh");
+    }
+}
 sub shroot(){
     my (@args)=@_;
     for my $arg (@args){
@@ -493,6 +509,10 @@ sub shtmp(){
 	&_sync_system("cd $dirs{tmp} && $arg","sh");
     }
 }
+sub ln(){
+    my ($t)=@_;
+    &_sync_system("cd $dirs{root} && sudo ln -sf $dirs{root}/$t /usr/local/bin", "soft link");
+}
 sub setdir(){
     my ($str1,$str2)=@_;
     $dirs{$str1}=$dirs{$str2};
@@ -503,6 +523,7 @@ sub mvtmp(){
 	remove_tree("$repo/$pack_id");
     }
     &_sync_system("mv $dirs{root} $repo/$pack_id","mv");
+    $dirs{root}="$repo/$pack_id"
 }
 sub rmz(){
     unlink $filename;
