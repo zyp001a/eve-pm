@@ -16,3 +16,4 @@ seat	search engine apis	http://midnightresearch.com/projects/search-engine-asses
 gnutls2	gnu gnutls	ftp://ftp.gnu.org/gnu/gnutls/	1	latest:2\.12\.1\d+\.tar\.[glxb]z2?$|wget	tar|conf|inst
 rvm	ruby version manager	https://get.rvm.io	0	wgettmp	shcat:bash -s
 nodejs	node.js	http://nodejs.org/download/	0	nav:linux-x64.tar.gz|wget	tar|mvtmp|ln:bin/node|ln:bin/npm
+openssh	openssh	ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/	1	latest:tar.gz|wget	tar|conf|inst

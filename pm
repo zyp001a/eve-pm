@@ -7,6 +7,7 @@ use HTTP::Tiny;
 use Net::FTP;
 use POSIX qw(strftime);
 my $cur_year = strftime "%Y",localtime();
+my $cur_day = strftime "%Y%m%d",localtime();
 my $mon_ref={"Jan"=>1, "Feb"=>2, "Mar"=>3, "Apr"=>4,
  "May"=>5, "Jun"=>6, "Jul"=>7, "Aug"=>8,
 	 "Sep"=>9, "Oct"=>10, "Nov"=>11, "Dec"=>12};
@@ -286,6 +287,9 @@ sub _parse_ftp_list_string(){
 	$year=$cur_year;
     }
     my $time=sprintf("%04d%02d%02d",$year,$mon_ref->{$mon},$day);
+if($time>$cur_day){
+	$time=sprintf("%04d%02d%02d",$year-1,$mon_ref->{$mon},$day);
+}
     my $isdir=0;
     if($mod=~/^d/){
 	$isdir=1;
