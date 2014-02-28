@@ -229,37 +229,36 @@ sub _download(){
     my ($function, $arg);
     my @download_method_list = split /\|/,$download_method_list;
     for my $download_method (@download_method_list){
-	if($download_method=~/^([^:]+):?(\S+)?$/){
-	    ($function, $arg)=($1,$2);
-	}
-	else{
-	    die "download method string is not valid: \n$download_method";
-	}
-	my @args=split ",",$arg;
+				if($download_method=~/^([^:]+):?(\S+)?$/){
+						($function, $arg)=($1,$2);
+				}
+				else{
+						die "download method string is not valid: \n$download_method";
+				}
+				my @args=split ",",$arg;
 
-	$download_url=&{\&{$function}}($download_url, @args);
+				$download_url=&{\&{$function}}($download_url, @args);
     }
 
     
-
 }
 sub _build(){
     my ($install_method_list)=@_;
     my ($function, $arg);
     my @install_method_list = split /\|/,$install_method_list;
     
-    print "building $pack\n";
+    print "building $pack\n" if $install_method_list ne "";
 
     for my $install_method (@install_method_list){
 
-	if($install_method=~/^([^:]+):?(.+)?$/){
-	    ($function, $arg)=($1,$2);
-	}	
-	else{
-	    die "build method string is not valid: \n$install_method";
-	}
-	my @args=split ",",$arg;
-	&{\&{$function}}(@args);
+				if($install_method=~/^([^:]+):?(.+)?$/){
+						($function, $arg)=($1,$2);
+				}	
+				else{
+						die "build method string is not valid: \n$install_method";
+				}
+				my @args=split ",",$arg;
+				&{\&{$function}}(@args);
     }
 
 
@@ -376,38 +375,37 @@ sub nav(){
     my $response;
     my $content;
     if($protocal eq "https"){
-	$content=`wget -c $download_url -O -`;
+				$content=`wget -c $download_url --no-check-certificate -O -`;
     }
     else{
-	$response=HTTP::Tiny->new->get($download_url);
-	die "Unable to get page $download_url $@" if !$response->{success};;
-	$content=$response->{content};
+				$response=HTTP::Tiny->new->get($download_url);
+				die "Unable to get page $download_url $@" if !$response->{success};;
+				$content=$response->{content};
     }
-
-
-   
     
     
     if($content=~/href\s*=\s*[\'\"]([0-9a-zA-z_\-\:\/\.]*$href[0-9a-zA-z_\-\:\/\.]*)[\'\"]/s){
-	my $url = $1;
+				my $url = $1;
 
-	warn "-->match", $url,"\n";
-	if($url=~/^http|https|ftp:\/\/[^\/]+/){
-	    $url=$url;
-	}
-	elsif($url=~/^\/\//){
-	    $url="http:$url";
-	}
-	elsif($url=~/^\//){
-	    $url=$domain."$url";
-	}
-	else{
-	    $url=$base."$url";
-	}
-	return $url;
+
+				if($url=~/^http|https|ftp:\/\/[^\/]+/){
+						$url=$url;
+				}
+				elsif($url=~/^\/\//){
+						$url="http:$url";
+				}
+				elsif($url=~/^\//){
+						$url=$domain."$url";
+				}
+				else{
+						$url=$base."$url";
+				}
+				warn "-->match: ", $url,"\n";
+
+				return $url;
     }
     else{
-	die "href not find in page $download_url, $pack download failed";
+				die "href not find in page $download_url, $pack download failed";
     }
 
 }
@@ -416,22 +414,30 @@ sub parse(){
 sub apply(){
 }
 sub wget(){
-    my ($download_url)=@_;
+    my ($download_url, $postfix)=@_;
+		my $ori_download_url=$download_url;
+		if($postfix){
+				$download_url=$download_url.$postfix;
+		}
     if($download_url=~/([^\/]+)\/?$/){
-	$filename=$1;
+				$filename=$1;
     }
     else{
-	die "invalid download url, wget $pack\n";
+				die "invalid download url, wget $pack\n";
     }
     if($download_url=~/([^\/]+\.gz)/ && $1 ne $filename){
-	$filename = $1;
+				$filename = $1;
     }
     if($download_url=~/([^\/]+\.zip)/ && $1 ne $filename){
-	$filename = $1;
+				$filename = $1;
     }
-    warn "download filename", $filename,"\n";
+    print "-->download filename: ", $filename,"\n";
     system qq(echo $download_url >>$log_file); 
-    &_sync_system(qq(cd $repo && wget -c $download_url -O $filename), "wget");
+		if($is_update){
+				unlink($filename);
+		}
+    &_sync_system(qq(cd $repo && wget -c $download_url --no-check-certificate -O $filename), "wget");
+		return $ori_download_url;
 }
 sub wgettmp(){
     my ($download_url)=@_;
@@ -524,7 +530,7 @@ sub setdir(){
 
 sub mvtmp(){
     if(-d "$repo/$pack_id"){
-	remove_tree("$repo/$pack_id");
+				remove_tree("$repo/$pack_id");
     }
     &_sync_system("mv $dirs{root} $repo/$pack_id","mv");
     $dirs{root}="$repo/$pack_id"

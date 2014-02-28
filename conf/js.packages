@@ -1,0 +1,17 @@
+requirejs	require.js	http://requirejs.org/docs/download.html	0	nav:require\.js|wget
+requirejs-tpl	require.js template plugin	https://github.com/ZeeAgency/requirejs-tpl	0	git
+r.js	r.js	http://requirejs.org/docs/download.html	0	nav:r\.js|wget
+underscore	underscore.js	http://underscorejs.org/	0	nav:underscore\.js|wget
+backbone	backbone.js	http://backbonejs.org/	0	nav:backbone\.js|wget
+backbone.picky	select	https://github.com/derickbailey/backbone.picky	0	git
+jquery	jquery	http://jquery.com/download/	0	nav:jquery-[\d\.]+\.js|wget
+jqueryui	jqueryui	https://jqueryui.com/download/	0	nav:jquery-ui-[\d\,]+\.zip|wget	unzip|mvtmp
+marionette	marionettejs	http://marionettejs.com/#download	0	nav:backbone\.marionette\.js|wget
+json2	crockford json-js	https://github.com/douglascrockford/JSON-js	0	git
+
+bootstrap	twitter boostrap	http://getbootstrap.com/getting-started/#download	0	nav:bootstrap-[\d\.]+-dist.zip|wget	unzip|mvtmp
+angular	angular	http://code.angularjs.org/snapshot/angular.min.js	0	wget|wget:.map
+angular-route	angular	http://code.angularjs.org/snapshot/angular-route.min.js	0	wget|wget:.map	
+angular-resource	angular	http://code.angularjs.org/snapshot/angular-resource.min.js	0	wget|wget:.map	
+angular-xeditable	angular	https://github.com/vitalets/angular-xeditable	0	git
+angular-file-upload	angular	https://github.com/nervgh/angular-file-upload/	0	git
