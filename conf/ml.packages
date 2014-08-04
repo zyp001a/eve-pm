@@ -1,0 +1,2 @@
+tesseract-ocr	tesseract-ocr	https://code.google.com/p/tesseract-ocr/downloads/list	1	nav:tar\.gz|wget	sh:./autogen.sh|conf|inst
+leptonica	leptonica	http://www.leptonica.com/download.html	1	nav:tar\.gz|wget	tar|conf|inst

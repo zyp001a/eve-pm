@@ -126,14 +126,14 @@ sub erase(){
 sub search(){
     warn "Search $pack...\n";
     for my $ipack (sort (keys %binary_package_hash, 
-			 keys %stable_package_hash,
-			 keys %dev_package_hash,
-			 keys %local_package_hash)){
-	warn "$ipack\t$pack\n";
-	my ($download_url, $download_method, $install_method) = @{$package_ref->{$ipack}}[1..3];
-	if($ipack=~/$pack/){
-	    print $ipack,"\n";
-	}
+												 keys %stable_package_hash,
+												 keys %dev_package_hash,
+												 keys %local_package_hash)){
+				warn "$ipack\t$pack\n";
+				my ($download_url, $download_method, $install_method) = @{$package_ref->{$ipack}}[1..3];
+				if($ipack=~/$pack/){
+						print $ipack,"\n";
+				}
     }
 }
 sub generate(){
@@ -371,6 +371,7 @@ sub nav(){
     warn "navigate $download_url\n";
     $download_url=~/^(((http|https|ftp):\/\/[^\/]+)\S+(?:[^\/]+)?)$/;
     my ($base, $domain, $protocal)=($1,$2,$3);
+
     die "protocal $protocal is not identified" if !$protocal;
     my $response;
     my $content;
@@ -397,8 +398,11 @@ sub nav(){
 				elsif($url=~/^\//){
 						$url=$domain."$url";
 				}
-				else{
+				elsif($base =~ /\/$/){
 						$url=$base."$url";
+				}
+				else{
+						$url=$domain."/"."$url";
 				}
 				warn "-->match: ", $url,"\n";
 
@@ -534,6 +538,13 @@ sub mvtmp(){
     }
     &_sync_system("mv $dirs{root} $repo/$pack_id","mv");
     $dirs{root}="$repo/$pack_id"
+}
+sub mvbin(){
+    if(-d "$repo/$pack_id"){
+				remove_tree("$repo/$pack_id");
+    }
+    &_sync_system("sudo mv $dirs{root}/bin/* /usr/bin/.","mv");
+    $dirs{root}="/usr/bin"
 }
 sub rmz(){
     unlink $filename;
